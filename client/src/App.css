@@ -4,66 +4,1015 @@
   box-sizing: border-box;
 }
 
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --dark: #0f172a;
+  --darker: #020617;
+  --light: #f8fafc;
+  --gray: #64748b;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--darker);
   color: white;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .app {
-  min-height: 100vh;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
+/* Header */
 .header {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(10px);
-  border-radius: 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
-.title {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.stats {
+.logo {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 10px;
 }
 
-.stat-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px 20px;
-  border-radius: 10px;
-  text-align: center;
-  min-width: 100px;
+.logo-icon {
+  font-size: 28px;
 }
 
-.stat-label {
-  font-size: 0.8rem;
-  color: #a0aec0;
-  display: block;
+.logo h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.game-info {
+  display: flex;
+  gap: 30px;
+}
+
+.round-info, .score-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--gray);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: bold;
+.value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Main game area - Street View takes full screen */
+.game-main {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+  z-index: 1;
+}
+
+.street-view-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Result Overlay */
+.result-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.result-content {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.5s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.result-header {
+  margin-bottom: 30px;
+}
+
+.result-header h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.distance-badge {
+  display: inline-block;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.location-reveal {
+  margin-bottom: 30px;
+}
+
+.location-reveal h3 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.location-reveal p {
+  font-size: 18px;
+  color: var(--gray);
+}
+
+.points-earned {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--success);
+  margin-bottom: 30px;
+  padding: 15px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 50px;
+}
+
+.next-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.next-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Bottom Right Panel - Interactive Map */
+.bottom-panel {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 400px;
+  z-index: 1000;
+  animation: slideInRight 0.5s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effect - map enlarges */
+.bottom-panel:hover {
+  width: 600px;
+  transform: translateY(-10px) scale(1.05);
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
+  z-index: 2000;
+}
+
+/* Map container when not hovered */
+.bottom-panel:not(:hover) .guess-map {
+  height: 220px;
+}
+
+/* Map container when hovered */
+.bottom-panel:hover .guess-map {
+  height: 350px;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.map-container {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-panel:hover .map-container {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: var(--primary);
+  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 5px;
+}
+
+.map-title {
+  font-size: 12px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+
+.bottom-panel:hover .map-title {
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.guess-coords {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: all 0.3s;
+}
+
+.bottom-panel:hover .guess-coords {
+  background: rgba(59, 130, 246, 0.2);
+  font-size: 12px;
+}
+
+/* Interactive Map Container */
+.guess-map {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 10;
+  touch-action: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-panel:hover .guess-map {
+  border-color: var(--primary);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+/* Ensure Leaflet map gets proper height */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background: #1a1a2e;
+  z-index: 5;
+  transition: all 0.3s;
+}
+
+/* Map Footer */
+.map-footer {
+  margin-top: 5px;
+  transition: all 0.3s;
+}
+
+.submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 100;
+  position: relative;
+}
+
+.bottom-panel:hover .submit-btn {
+  padding: 15px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--gray);
+}
+
+/* Custom Markers */
+.custom-marker {
+  font-size: 24px;
+  filter: drop-shadow(0 0 5px #3b82f6);
+  animation: pulse 1.5s infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.actual-marker {
+  font-size: 28px;
+  filter: drop-shadow(0 0 10px #10b981);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Leaflet control overrides */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.bottom-panel:hover .leaflet-control-zoom {
+  opacity: 1;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 18px !important;
+  transition: all 0.3s;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--primary) !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: var(--gray) !important;
+  font-size: 8px !important;
+  padding: 2px 5px !important;
+  border-radius: 4px !important;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.bottom-panel:hover .leaflet-control-attribution {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .bottom-panel {
+    width: 300px;
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .bottom-panel:hover {
+    width: 90vw;
+    right: 5vw;
+    left: 5vw;
+    transform: translateY(-10px) scale(1.05);
+  }
+  
+  .guess-map {
+    height: 180px;
+  }
+  
+  .bottom-panel:hover .guess-map {
+    height: 300px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 20px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+  
+  .game-info {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .result-content {
+    padding: 30px 20px;
+  }
+  
+  .location-reveal h3 {
+    font-size: 24px;
+  }
+  
+  .distance-badge {
+    font-size: 20px;
+  }
+}
+
+/* Ensure map is clickable */
+.leaflet-interactive {
+  cursor: crosshair !important;
+}
+
+/* Fix for touch devices */
+.leaflet-touch .leaflet-control-zoom a {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+}
+
+/* Full screen hint when hovering */
+.bottom-panel:hover::before {
+  content: '🔍 ZOOMED MAP';
+  position: absolute;
+  top: -30px;
+  right: 20px;
+  background: var(--primary);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  animation: fadeInUp 0.3s;
+  z-index: 3000;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Map hint text */
+.map-hint {
+  position: absolute;
+  bottom: 80px;
+  right: 50px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 14px;
+  z-index: 3000;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+  border: 1px solid var(--primary);
+}
+
+/* Hide when map is hovered */
+.bottom-panel:hover ~ .map-hint {
+  opacity: 0;
+}
+/* Add to your App.css - ensures map container is visible */
+
+.guess-map {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 10;
+  touch-action: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #1a1a2e; /* Fallback background */
+}
+
+.bottom-panel:hover .guess-map {
+  height: 350px;
+  border-color: var(--primary);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+/* Ensure Leaflet container is visible */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background: #1a1a2e !important;
+  z-index: 5;
+}
+
+/* Fallback background for map tiles */
+.leaflet-tile {
+  filter: brightness(0.8) contrast(1.2);
+}
+
+/* Loading state for map */
+.map-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  color: white;
+  font-size: 14px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+/* Add to your existing App.css */
+
+/* Auth Styles */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.auth-card h2 {
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #666;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.auth-card button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.auth-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  background: #fee;
+  color: #c33;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.auth-link {
+  margin-top: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.auth-link a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
   background: linear-gradient(135deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.nav-link:hover {
+  color: #667eea;
+}
+
+.nav-signup {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 8px 20px;
+  border-radius: 50px;
+}
+
+.nav-signup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  color: white;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-username {
+  color: white;
+  font-weight: 500;
+}
+
+.nav-logout {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-logout:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Leaderboard */
+.leaderboard-container {
+  margin-top: 80px;
+  padding: 30px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.leaderboard-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 36px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.mode-tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.mode-tabs button.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.leaderboard-table {
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px;
+  padding: 15px 20px;
+  background: rgba(255,255,255,0.1);
+  font-weight: 600;
+  color: #a0aec0;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s;
+}
+
+.table-row:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.rank {
+  font-weight: 700;
+  color: #667eea;
+}
+
+.player {
+  font-weight: 600;
+}
+
+.score {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+/* Lobby */
+.lobby-container {
+  margin-top: 80px;
+  padding: 30px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lobby-stats {
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stat-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #667eea;
+  display: block;
+}
+
+.lobby-actions {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.find-match-btn {
+  padding: 20px 60px;
+  font-size: 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 700;
+}
+
+.find-match-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+}
+
+.searching {
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-modes h3 {
+  margin-bottom: 20px;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.mode-card {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.mode-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255,255,255,0.1);
+}
+
+.mode-card h4 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.mode-badge {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 5px 15px;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 50px;
+  font-size: 12px;
+  color: #667eea;
+}
+
+/* Duel Mode */
+.duel-container {
+  margin-top: 80px;
+}
+
+.duel-header {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  right: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 50px;
+  z-index: 90;
+}
+
+.player-score, .opponent-score {
+  text-align: center;
+}
+
+.player-score .score, .opponent-score .score {
+  font-size: 32px;
+  font-weight: 700;
+  display: block;
+}
+
+.round-info {
+  font-size: 18px;
+  color: #a0aec0;
+}
+
+.opponent-hint {
+  position: absolute;
+  top: -30px;
+  right: 20px;
+  background: #667eea;
+  padding: 5px 15px;
+  border-radius: 50px;
+  font-size: 12px;
+  animation: pulse 1.5s infinite;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-function TimeTrial() {
+function AIMode() {
   return (
     <div style={{
       marginTop: '80px',
@@ -8,10 +8,10 @@ function TimeTrial() {
       textAlign: 'center',
       color: 'white'
     }}>
-      <h1>⏱️ Time Trial</h1>
+      <h1>🤖 AI Mode</h1>
       <p>Coming Soon!</p>
     </div>
   );
 }
 
-export default TimeTrial;
+export default AIMode;
