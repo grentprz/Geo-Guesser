@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 function Leaderboard() {
-  const [mode, setMode] = useState('classic');
+  const [mode, setMode] = useState('rank'); // Default to Ranked
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRank, setUserRank] = useState(null);
   const { user } = useAuth();
 
+  // Only Ranked mode on leaderboard (Classic is just for fun)
   const gameModes = [
-    { id: 'classic', name: '🌍 Classic', color: '#667eea' },
     { id: 'rank', name: '🏆 Ranked', color: '#ffd700' },
     { id: 'timetrial', name: '⏱️ Time Trial', color: '#48bb78' },
     { id: 'duel', name: '⚔️ Duel', color: '#ff6b6b' },
@@ -47,13 +47,6 @@ function Leaderboard() {
     }
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 5000) return '#4ade80';
-    if (score >= 2000) return '#fbbf24';
-    if (score >= 0) return '#f97316';
-    return '#ef4444';
-  };
-
   const getMedal = (rank) => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
@@ -68,7 +61,7 @@ function Leaderboard() {
         Leaderboard
       </h1>
 
-      {/* Mode Tabs */}
+      {/* Mode Tabs - Classic removed */}
       <div className="mode-tabs">
         {gameModes.map((gameMode) => (
           <button
@@ -82,7 +75,7 @@ function Leaderboard() {
         ))}
       </div>
 
-      {/* User Rank Card - Simple */}
+      {/* User Rank Card */}
       {user && userRank && (
         <div className="user-rank-card">
           <div className="user-rank-header">
@@ -91,12 +84,7 @@ function Leaderboard() {
           </div>
           <div className="user-rank-details">
             <span className="user-name">{user.username}</span>
-            <span 
-              className="user-score"
-              style={{ color: getScoreColor(userRank.score || 0) }}
-            >
-              {userRank.score > 0 ? '+' : ''}{userRank.score || 0}
-            </span>
+            <span className="user-score">{userRank.score || 0}</span>
           </div>
         </div>
       )}
@@ -129,12 +117,7 @@ function Leaderboard() {
                   {entry.username}
                   {entry.id === user?.id && <span className="you-badge">(You)</span>}
                 </span>
-                <span 
-                  className="score-col"
-                  style={{ color: getScoreColor(entry.score) }}
-                >
-                  {entry.score > 0 ? '+' : ''}{entry.score}
-                </span>
+                <span className="score-col">{entry.score}</span>
                 <span className="games-col">{entry.games_played}</span>
               </div>
             ))
@@ -170,7 +153,6 @@ function Leaderboard() {
           font-size: 2.5rem;
         }
 
-        /* Mode Tabs */
         .mode-tabs {
           display: flex;
           gap: 10px;
@@ -198,7 +180,6 @@ function Leaderboard() {
           box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        /* User Rank Card */
         .user-rank-card {
           background: rgba(255,255,255,0.05);
           border-radius: 10px;
@@ -233,9 +214,9 @@ function Leaderboard() {
         .user-score {
           font-size: 1.3rem;
           font-weight: 700;
+          color: #4ade80;
         }
 
-        /* Leaderboard Table */
         .leaderboard-table {
           background: rgba(255,255,255,0.05);
           border-radius: 10px;
@@ -263,7 +244,7 @@ function Leaderboard() {
         }
 
         .table-row.current-user {
-          background: rgba(102, 126, 234, 0.2);
+          background: rgba(255, 215, 0, 0.2);
         }
 
         .rank-col {
@@ -277,21 +258,23 @@ function Leaderboard() {
         }
 
         .you-badge {
-          background: #667eea;
+          background: #ffd700;
+          color: #000;
           padding: 2px 8px;
           border-radius: 50px;
           font-size: 0.7rem;
+          font-weight: bold;
         }
 
         .score-col {
           font-weight: 600;
+          color: #4ade80;
         }
 
         .games-col {
           color: #a0aec0;
         }
 
-        /* Loading */
         .loading-state {
           text-align: center;
           padding: 40px;
@@ -303,7 +286,7 @@ function Leaderboard() {
           width: 40px;
           height: 40px;
           border: 3px solid rgba(255,255,255,0.1);
-          border-top-color: #667eea;
+          border-top-color: #ffd700;
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin: 0 auto 15px;

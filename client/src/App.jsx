@@ -197,15 +197,13 @@ function HomePage() {
     return Math.round(R * c);
   };
 
-  // CLASSIC MODE SCORING - Fun, not too harsh
+  // ✅ UPDATED: CLASSIC MODE SCORING - No negatives, just for fun!
   const calculateScore = (distance) => {
     if (distance < 100) return 500;      // Perfect: +500
     if (distance < 500) return 300;       // Great: +300
-    if (distance < 1000) return 100;       // Good: +100
-    if (distance < 2000) return 0;         // OK: 0 points
-    if (distance < 3000) return -50;       // Bad: -50
-    if (distance < 4000) return -100;      // Very Bad: -100
-    return -200;                            // Terrible: -200
+    if (distance < 1000) return 200;       // Good: +200
+    if (distance < 2000) return 100;       // Decent: +100
+    return 50;                              // Participation: +50 (no negative!)
   };
 
   const handleGuess = (guessCoords) => {
@@ -271,17 +269,16 @@ function HomePage() {
     if (dist < 100) return '#4ade80';
     if (dist < 500) return '#fbbf24';
     if (dist < 1000) return '#f97316';
-    return '#ef4444';
+    return '#94a3b8'; // Gray for far guesses (no negative connotation)
   };
 
+  // ✅ UPDATED: No negative messages
   const getScoreText = (dist) => {
     if (dist < 100) return 'PERFECT! +500';
     if (dist < 500) return 'GREAT! +300';
-    if (dist < 1000) return 'GOOD! +100';
-    if (dist < 2000) return 'OK: 0';
-    if (dist < 3000) return 'BAD: -50';
-    if (dist < 4000) return 'VERY BAD: -100';
-    return 'TERRIBLE: -200';
+    if (dist < 1000) return 'GOOD! +200';
+    if (dist < 2000) return 'DECENT! +100';
+    return 'NICE TRY! +50';
   };
 
   return (
@@ -299,8 +296,8 @@ function HomePage() {
           </div>
           <div className="score-info">
             <span className="label">SCORE</span>
-            <span className="value" style={{ color: score >= 0 ? '#4ade80' : '#ef4444' }}>
-              {score > 0 ? '+' : ''}{score}
+            <span className="value" style={{ color: '#4ade80' }}>
+              +{score}
             </span>
           </div>
           {user && (
@@ -330,8 +327,8 @@ function HomePage() {
                   <p>{currentLocation.city}, {currentLocation.country}</p>
                 </div>
                 
-                <div className="points-earned" style={{ color: calculateScore(distance) >= 0 ? '#4ade80' : '#ef4444' }}>
-                  {calculateScore(distance) > 0 ? '+' : ''}{calculateScore(distance)} points
+                <div className="points-earned" style={{ color: '#4ade80' }}>
+                  +{calculateScore(distance)} points
                 </div>
                 
                 <button className="next-btn" onClick={nextRound}>

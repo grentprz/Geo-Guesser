@@ -120,15 +120,15 @@ function LandingPage() {
           </div>
           <div className="stats-banner">
             <div className="stat-item">
-              <span className="stat-number">1M+</span>
+              <span className="stat-number"></span>
               <span className="stat-label">Games Played</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">50K+</span>
+              <span className="stat-number"></span>
               <span className="stat-label">Players</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">100+</span>
+              <span className="stat-number"></span>
               <span className="stat-label">Countries</span>
             </div>
           </div>
