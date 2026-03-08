@@ -73,10 +73,12 @@ function RankMode() {
   const [guess, setGuess] = useState(null);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
-  const [totalRounds] = useState(10); // 10 rounds for ranked mode
+  const [totalRounds] = useState(10);
   const [gameState, setGameState] = useState('playing');
   const [distance, setDistance] = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [roundResults, setRoundResults] = useState([]);
   const [previousLocations, setPreviousLocations] = useState([]);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -90,6 +92,31 @@ function RankMode() {
   useEffect(() => {
     loadRandomLocation();
   }, []);
+
+  // ✅ SPACEBAR HANDLER FOR RANK MODE
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for spacebar (key code 32)
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        e.preventDefault(); // Prevent page scrolling
+        console.log('Spacebar pressed in Rank Mode');
+        
+        // Submit if conditions are met
+        if (guess && gameState === 'playing') {
+          console.log('Submitting guess via spacebar in Rank Mode');
+          submitGuess();
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [guess, gameState]); // Dependencies
 
   const loadRandomLocation = () => {
     let available = LOCATIONS.filter(loc => !previousLocations.includes(loc.id));
@@ -120,14 +147,14 @@ function RankMode() {
     return Math.round(R * c);
   };
 
-  // RANKED MODE SCORING - Higher points for competition!
+  // RANKED MODE SCORING
   const calculateScore = (distance) => {
-    if (distance < 100) return 1000;      // Perfect: +1000
-    if (distance < 500) return 600;       // Great: +600
-    if (distance < 1000) return 400;      // Good: +400
-    if (distance < 2000) return 200;      // Decent: +200
-    if (distance < 3000) return 100;      // Okay: +100
-    return 50;                             // Participation: +50
+    if (distance < 100) return 1000;
+    if (distance < 500) return 600;
+    if (distance < 1000) return 400;
+    if (distance < 2000) return 200;
+    if (distance < 3000) return 100;
+    return 50;
   };
 
   const handleGuess = (guessCoords) => {
@@ -148,10 +175,21 @@ function RankMode() {
     const newScore = score + roundScore;
     setScore(newScore);
     
+    // Save round result
+    setRoundResults(prev => [...prev, {
+      round: round,
+      location: currentLocation.name,
+      country: currentLocation.country,
+      distance: dist,
+      score: roundScore,
+      guess: guess,
+      actual: { lat: currentLocation.lat, lng: currentLocation.lng }
+    }]);
+    
     setGameState('result');
     setShowResult(true);
 
-    // ✅ SAVE EACH ROUND TO LEADERBOARD
+    // Save to leaderboard
     if (user) {
       fetch('http://localhost:5000/api/games/save', {
         method: 'POST',
@@ -161,7 +199,7 @@ function RankMode() {
         },
         body: JSON.stringify({
           userId: user.id,
-          mode: 'ranked',
+          mode: 'rank',
           score: roundScore,
           distance: dist,
           rounds: [{ 
@@ -172,10 +210,7 @@ function RankMode() {
           }]
         })
       })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Round saved to leaderboard:', data);
-        // Trigger leaderboard refresh
+      .then(() => {
         window.dispatchEvent(new Event('leaderboardUpdate'));
       })
       .catch(err => console.error('Failed to save game:', err));
@@ -187,17 +222,27 @@ function RankMode() {
       setRound(prev => prev + 1);
       loadRandomLocation();
     } else {
-      // ✅ GAME COMPLETE - FINAL SCORE SAVED
-      alert(`🏆 RANKED GAME COMPLETE! Final Score: ${score}`);
-      
-      // Force leaderboard refresh one more time
+      // Show results screen instead of alert
+      setShowResults(true);
       window.dispatchEvent(new Event('leaderboardUpdate'));
-      
-      setRound(1);
-      setScore(0);
-      setPreviousLocations([]);
-      loadRandomLocation();
     }
+  };
+
+  const resetGame = () => {
+    setShowResults(false);
+    setRound(1);
+    setScore(0);
+    setRoundResults([]);
+    setPreviousLocations([]);
+    loadRandomLocation();
+  };
+
+  const goToHome = () => {
+    navigate('/');
+  };
+
+  const goToRanked = () => {
+    resetGame();
   };
 
   const getScoreColor = (dist) => {
@@ -216,6 +261,342 @@ function RankMode() {
     return 'GOOD TRY! +50';
   };
 
+  // Results Screen Component
+  const ResultsScreen = ({ score, roundResults, onPlayAgain, onHome, onRanked }) => {
+    const maxPossibleScore = totalRounds * 1000;
+    const percentage = Math.round((score / maxPossibleScore) * 100);
+    
+    const getRank = () => {
+      if (percentage >= 90) return { name: 'LEGEND', color: '#ffd700', icon: '👑' };
+      if (percentage >= 75) return { name: 'DIAMOND', color: '#b9f2ff', icon: '💎' };
+      if (percentage >= 60) return { name: 'PLATINUM', color: '#e5e4e2', icon: '⚪' };
+      if (percentage >= 45) return { name: 'GOLD', color: '#ffd700', icon: '🥇' };
+      if (percentage >= 30) return { name: 'SILVER', color: '#c0c0c0', icon: '🥈' };
+      return { name: 'BRONZE', color: '#cd7f32', icon: '🥉' };
+    };
+
+    const rank = getRank();
+    
+    // Calculate stats
+    const bestRound = roundResults.length > 0 
+      ? Math.max(...roundResults.map(r => r.score)) 
+      : 0;
+    const worstRound = roundResults.length > 0 
+      ? Math.min(...roundResults.map(r => r.score)) 
+      : 0;
+    const avgDistance = roundResults.length > 0 
+      ? Math.round(roundResults.reduce((sum, r) => sum + r.distance, 0) / roundResults.length) 
+      : 0;
+    const perfectRounds = roundResults.filter(r => r.score === 1000).length;
+
+    return (
+      <div className="results-screen">
+        <div className="results-container">
+          <h1 className="results-title">🏆 GAME COMPLETE</h1>
+          
+          {/* Total Score Card */}
+          <div className="total-score-card" style={{ borderColor: rank.color }}>
+            <div className="rank-icon" style={{ background: rank.color }}>
+              {rank.icon}
+            </div>
+            <div className="score-details">
+              <span className="score-label">TOTAL SCORE</span>
+              <span className="score-value" style={{ color: rank.color }}>{score}</span>
+              <span className="score-percentage">{percentage}% of max</span>
+            </div>
+            <div className="rank-name" style={{ background: rank.color }}>
+              {rank.name}
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <span className="stat-icon">🎯</span>
+              <span className="stat-label">Best Round</span>
+              <span className="stat-value">{bestRound}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-icon">📏</span>
+              <span className="stat-label">Avg Distance</span>
+              <span className="stat-value">{avgDistance}km</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-icon">💯</span>
+              <span className="stat-label">Perfect Rounds</span>
+              <span className="stat-value">{perfectRounds}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-icon">📊</span>
+              <span className="stat-label">Accuracy</span>
+              <span className="stat-value">{percentage}%</span>
+            </div>
+          </div>
+
+          {/* Rounds Table */}
+          <div className="rounds-table">
+            <h3>Round Details</h3>
+            <div className="table-header">
+              <span>Round</span>
+              <span>Location</span>
+              <span>Distance</span>
+              <span>Score</span>
+            </div>
+            <div className="table-body">
+              {roundResults.map((round, index) => (
+                <div key={index} className="table-row">
+                  <span>#{round.round}</span>
+                  <span>{round.location}</span>
+                  <span>{round.distance}km</span>
+                  <span style={{ color: round.score >= 600 ? '#4ade80' : '#fbbf24' }}>
+                    +{round.score}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="action-buttons">
+            <button className="action-btn primary" onClick={onPlayAgain}>
+              🔄 Play Again
+            </button>
+            <button className="action-btn secondary" onClick={onRanked}>
+              🏆 New Ranked Game
+            </button>
+            <button className="action-btn home" onClick={onHome}>
+              🏠 Home
+            </button>
+          </div>
+        </div>
+
+        <style>{`
+          .results-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+          }
+
+          .results-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 40px auto;
+            animation: slideUp 0.5s ease;
+          }
+
+          .results-title {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+
+          .total-score-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            border: 2px solid;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .rank-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          }
+
+          .score-details {
+            flex: 1;
+          }
+
+          .score-label {
+            display: block;
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 5px;
+          }
+
+          .score-value {
+            display: block;
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+          }
+
+          .score-percentage {
+            font-size: 1rem;
+            color: #a0aec0;
+          }
+
+          .rank-name {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #000;
+          }
+
+          .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+          }
+
+          .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+          }
+
+          .stat-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+          }
+
+          .stat-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-bottom: 5px;
+          }
+
+          .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+          }
+
+          .rounds-table {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+          }
+
+          .rounds-table h3 {
+            margin-bottom: 15px;
+            color: white;
+          }
+
+          .table-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px 100px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-weight: 600;
+            color: #a0aec0;
+            margin-bottom: 10px;
+          }
+
+          .table-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px 100px;
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+          }
+
+          .table-row:hover {
+            background: rgba(255,255,255,0.05);
+          }
+
+          .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+          }
+
+          .action-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+          }
+
+          .action-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+          }
+
+          .action-btn.secondary {
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            color: white;
+          }
+
+          .action-btn.home {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+          }
+
+          .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          }
+
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(50px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @media (max-width: 768px) {
+            .stats-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+              grid-template-columns: 1fr;
+            }
+            
+            .table-header,
+            .table-row {
+              grid-template-columns: 60px 1fr 70px 70px;
+              font-size: 0.9rem;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  };
+
   if (!user) {
     return (
       <div style={{
@@ -231,6 +612,18 @@ function RankMode() {
           <p>Redirecting to login...</p>
         </div>
       </div>
+    );
+  }
+
+  if (showResults) {
+    return (
+      <ResultsScreen 
+        score={score}
+        roundResults={roundResults}
+        onPlayAgain={resetGame}
+        onHome={goToHome}
+        onRanked={goToRanked}
+      />
     );
   }
 
@@ -283,7 +676,7 @@ function RankMode() {
                 </div>
                 
                 <button className="next-btn" onClick={nextRound}>
-                  {round < totalRounds ? 'Next Round →' : 'Complete Game'}
+                  {round < totalRounds ? 'Next Round →' : 'View Results'}
                 </button>
               </div>
             </div>

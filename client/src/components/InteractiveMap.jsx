@@ -15,36 +15,46 @@ const InteractiveMap = ({ onGuess, guess, actualLocation, showResult }) => {
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
   const actualMarkerRef = useRef(null);
+  const lineRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
 
+  // Default map center and zoom
+  const DEFAULT_CENTER = [20, 0];
+  const DEFAULT_ZOOM = 2;
+
+  // Initialize map
   useEffect(() => {
     if (!mapInstanceRef.current && mapRef.current) {
       console.log('Initializing map...');
       
       // Create map instance
       mapInstanceRef.current = L.map(mapRef.current, {
-        center: [20, 0],
-        zoom: 2,
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
         zoomControl: true,
-        fadeAnimation: true,
-        markerZoomAnimation: true
+        dragging: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
+        keyboard: true
       });
 
-      // ENGLISH ONLY MAP TILES
+      // Add map tiles
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, © <a href="https://carto.com/">CARTO</a>',
+        attribution: '© OpenStreetMap, © CartoDB',
         subdomains: 'abcd',
         maxZoom: 19,
         minZoom: 0
       }).addTo(mapInstanceRef.current);
 
-      // Force a resize after initialization
+      // Mark map as ready
       setTimeout(() => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize();
           setMapReady(true);
+          console.log('Map is ready');
         }
-      }, 100);
+      }, 200);
     }
 
     return () => {
@@ -55,7 +65,7 @@ const InteractiveMap = ({ onGuess, guess, actualLocation, showResult }) => {
     };
   }, []);
 
-  // Handle map clicks - PIN APPEARS INSTANTLY!
+  // Handle map clicks - PIN APPEARS HERE!
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady) return;
 
@@ -69,12 +79,12 @@ const InteractiveMap = ({ onGuess, guess, actualLocation, showResult }) => {
         markerRef.current = null;
       }
 
-      // Create PIN marker (red pin) - APPEARS IMMEDIATELY!
+      // Create PIN marker - FIXED VERSION
       const pinIcon = L.divIcon({
-        html: '<div style="position: relative;"><div style="width: 30px; height: 30px; background: #ff6b6b; border: 3px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 5px 15px rgba(0,0,0,0.3);"><div style="position: absolute; top: 8px; left: 8px; width: 10px; height: 10px; background: white; border-radius: 50%; transform: rotate(45deg);"></div></div><div style="position: absolute; top: 30px; left: 10px; background: #333; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; white-space: nowrap; transform: rotate(0);">Your guess</div></div>',
+        html: '<div style="font-size: 32px; filter: drop-shadow(0 0 5px #ff6b6b);">📍</div>',
         className: 'pin-marker',
-        iconSize: [30, 42],
-        iconAnchor: [15, 42]
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
       });
 
       // Add marker immediately
@@ -108,66 +118,81 @@ const InteractiveMap = ({ onGuess, guess, actualLocation, showResult }) => {
     };
   }, []);
 
-  // Clear guess marker when showResult becomes true (after submitting)
-  useEffect(() => {
-    if (showResult && markerRef.current) {
-      mapInstanceRef.current.removeLayer(markerRef.current);
-      markerRef.current = null;
-    }
-  }, [showResult]);
-
-  // Update actual location marker when result is shown
+  // Show result markers when result is shown
   useEffect(() => {
     if (!mapInstanceRef.current || !actualLocation || !showResult) return;
 
-    // Remove existing actual marker
+    console.log('Showing result markers');
+    
+    // Remove existing actual marker and line
     if (actualMarkerRef.current) {
       mapInstanceRef.current.removeLayer(actualMarkerRef.current);
+    }
+    if (lineRef.current) {
+      mapInstanceRef.current.removeLayer(lineRef.current);
     }
 
     // Create target icon for actual location
     const targetIcon = L.divIcon({
-      html: '<div style="font-size: 32px; filter: drop-shadow(0 0 10px #10b981); animation: pulse 1.5s infinite;">🎯</div>',
+      html: '<div style="font-size: 34px; filter: drop-shadow(0 0 5px #10b981);">🎯</div>',
       className: 'target-marker',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32]
+      iconSize: [34, 34],
+      iconAnchor: [17, 34]
     });
 
     // Add actual location marker
     actualMarkerRef.current = L.marker([actualLocation.lat, actualLocation.lng], { icon: targetIcon }).addTo(mapInstanceRef.current);
 
-    // Fit bounds to show both markers if guess exists
+    // Draw connection line if guess exists
     if (guess) {
+      const linePoints = [
+        [guess.lat, guess.lng],
+        [actualLocation.lat, actualLocation.lng]
+      ];
+      
+      lineRef.current = L.polyline(linePoints, {
+        color: '#ff6b6b',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '10, 10',
+        lineJoin: 'round'
+      }).addTo(mapInstanceRef.current);
+
+      // Fit bounds to show both markers
       const bounds = L.latLngBounds([
         [actualLocation.lat, actualLocation.lng],
         [guess.lat, guess.lng]
       ]);
       mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
+
   }, [actualLocation, showResult, guess]);
 
-  // Clear markers when new round starts (showResult becomes false)
+  // Clear markers and reset map when new round starts
   useEffect(() => {
-    if (!showResult && markerRef.current) {
-      mapInstanceRef.current.removeLayer(markerRef.current);
-      markerRef.current = null;
-    }
-    if (!showResult && actualMarkerRef.current) {
-      mapInstanceRef.current.removeLayer(actualMarkerRef.current);
-      actualMarkerRef.current = null;
+    if (!showResult) {
+      console.log('New round started - clearing markers');
+      
+      // Remove all markers
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+      if (actualMarkerRef.current) {
+        mapInstanceRef.current.removeLayer(actualMarkerRef.current);
+        actualMarkerRef.current = null;
+      }
+      if (lineRef.current) {
+        mapInstanceRef.current.removeLayer(lineRef.current);
+        lineRef.current = null;
+      }
+      
+      // Reset map to default view
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+      }
     }
   }, [showResult]);
-
-  // Force map resize when component mounts
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div 
@@ -175,7 +200,8 @@ const InteractiveMap = ({ onGuess, guess, actualLocation, showResult }) => {
       style={{ 
         width: '100%', 
         height: '100%',
-        background: '#1a1a2e'
+        background: '#1a1a2e',
+        cursor: 'crosshair'
       }} 
     />
   );

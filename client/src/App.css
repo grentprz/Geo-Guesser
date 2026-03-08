@@ -33,7 +33,7 @@ body {
   position: relative;
 }
 
-/* Header */
+/* Header - Fixed at top but doesn't cover content */
 .header {
   position: fixed;
   top: 20px;
@@ -71,9 +71,10 @@ body {
 .game-info {
   display: flex;
   gap: 30px;
+  align-items: center;
 }
 
-.round-info, .score-info {
+.round-info, .score-info, .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -95,10 +96,113 @@ body {
   border-radius: 20px;
 }
 
-/* Main game area - Street View takes full screen */
+/* Category Button */
+.category-button {
+  background: transparent;
+  border: 1px solid #667eea;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.category-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Category Selector Screen */
+.category-selector {
+  min-height: 100vh;
+  padding: 100px 20px 40px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+}
+
+.category-title {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.category-subtitle {
+  text-align: center;
+  color: #a0aec0;
+  margin-bottom: 50px;
+  font-size: 1.2rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.category-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--category-color);
+  transition: all 0.3s;
+}
+
+.category-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.category-card:hover::before {
+  height: 100%;
+  opacity: 0.1;
+}
+
+.category-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.category-name {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.category-description {
+  color: #a0aec0;
+  line-height: 1.6;
+}
+
+/* Main game area - Starts BELOW the header */
 .game-main {
   position: fixed;
-  top: 0;
+  top: 100px; /* Header height + spacing */
   left: 0;
   right: 0;
   bottom: 0;
@@ -326,6 +430,7 @@ body {
   z-index: 10;
   touch-action: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #1a1a2e;
 }
 
 .bottom-panel:hover .guess-map {
@@ -337,7 +442,7 @@ body {
 .leaflet-container {
   width: 100% !important;
   height: 100% !important;
-  background: #1a1a2e;
+  background: #1a1a2e !important;
   z-index: 5;
   transition: all 0.3s;
 }
@@ -451,68 +556,6 @@ body {
   opacity: 1;
 }
 
-/* Responsive */
-@media (max-width: 700px) {
-  .bottom-panel {
-    width: 300px;
-    bottom: 15px;
-    right: 15px;
-  }
-  
-  .bottom-panel:hover {
-    width: 90vw;
-    right: 5vw;
-    left: 5vw;
-    transform: translateY(-10px) scale(1.05);
-  }
-  
-  .guess-map {
-    height: 180px;
-  }
-  
-  .bottom-panel:hover .guess-map {
-    height: 300px;
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 10px;
-    border-radius: 20px;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-  }
-  
-  .game-info {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .result-content {
-    padding: 30px 20px;
-  }
-  
-  .location-reveal h3 {
-    font-size: 24px;
-  }
-  
-  .distance-badge {
-    font-size: 20px;
-  }
-}
-
-/* Ensure map is clickable */
-.leaflet-interactive {
-  cursor: crosshair !important;
-}
-
-/* Fix for touch devices */
-.leaflet-touch .leaflet-control-zoom a {
-  width: 44px !important;
-  height: 44px !important;
-  line-height: 44px !important;
-}
-
 /* Full screen hint when hovering */
 .bottom-panel:hover::before {
   content: '🔍 ZOOMED MAP';
@@ -561,59 +604,264 @@ body {
 .bottom-panel:hover ~ .map-hint {
   opacity: 0;
 }
-/* Add to your App.css - ensures map container is visible */
 
-.guess-map {
+/* Results Screen Styles */
+.results-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 9999 !important;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.results-container {
+  max-width: 800px;
   width: 100%;
-  height: 220px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px;
+  margin: 100px auto 40px;
+  animation: slideUp 0.5s ease;
+}
+
+.results-title {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.total-score-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  text-align: center;
+  border: 2px solid #667eea;
   position: relative;
-  z-index: 10;
-  touch-action: auto;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #1a1a2e; /* Fallback background */
+  overflow: hidden;
 }
 
-.bottom-panel:hover .guess-map {
-  height: 350px;
-  border-color: var(--primary);
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+.total-score-card.classic {
+  border-color: #667eea;
 }
 
-/* Ensure Leaflet container is visible */
-.leaflet-container {
-  width: 100% !important;
-  height: 100% !important;
-  background: #1a1a2e !important;
-  z-index: 5;
+.total-score-card.ranked {
+  border-color: #ffd700;
 }
 
-/* Fallback background for map tiles */
-.leaflet-tile {
-  filter: brightness(0.8) contrast(1.2);
+.score-details {
+  flex: 1;
 }
 
-/* Loading state for map */
-.map-loading {
-  width: 100%;
-  height: 100%;
+.score-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #a0aec0;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.score-value {
+  display: block;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.score-percentage {
+  font-size: 1rem;
+  color: #a0aec0;
+}
+
+.rank-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1a2e;
-  color: white;
-  font-size: 14px;
-  animation: pulse 1.5s infinite;
+  font-size: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+.rank-name {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 5px 15px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #000;
 }
-/* Add to your existing App.css */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255,255,255,0.08);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.rounds-table {
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.rounds-table h3 {
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.3rem;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px 100px;
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-weight: 600;
+  color: #a0aec0;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.table-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px 100px;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.3s;
+}
+
+.table-row:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+/* Custom scrollbar for table */
+.table-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-body::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+  border-radius: 4px;
+}
+
+.table-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+.table-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.action-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.action-btn.secondary {
+  background: linear-gradient(135deg, #ffd700, #ff6b6b);
+  color: white;
+}
+
+.action-btn.home {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.action-btn.primary:hover {
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.secondary:hover {
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+}
 
 /* Auth Styles */
 .auth-container {
@@ -1015,4 +1263,145 @@ body {
   border-radius: 50px;
   font-size: 12px;
   animation: pulse 1.5s infinite;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .game-main {
+    top: 140px; /* More space for taller header on mobile */
+  }
+  
+  .bottom-panel {
+    width: 300px;
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .bottom-panel:hover {
+    width: 90vw;
+    right: 5vw;
+    left: 5vw;
+    transform: translateY(-10px) scale(1.05);
+  }
+  
+  .guess-map {
+    height: 180px;
+  }
+  
+  .bottom-panel:hover .guess-map {
+    height: 300px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 20px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 15px;
+  }
+  
+  .game-info {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .category-button {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+  
+  .result-content {
+    padding: 30px 20px;
+  }
+  
+  .location-reveal h3 {
+    font-size: 24px;
+  }
+  
+  .distance-badge {
+    font-size: 20px;
+  }
+
+  .category-title {
+    font-size: 2rem;
+  }
+  
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-container {
+    margin: 120px auto 40px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1fr 70px 70px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-main {
+    top: 160px; /* Even more space on very small screens */
+  }
+  
+  .results-container {
+    margin: 140px auto 40px;
+  }
+  
+  .total-score-card {
+    padding: 20px;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+  
+  .stat-icon {
+    font-size: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: 1.2rem;
+  }
+  
+  .category-title {
+    font-size: 1.8rem;
+  }
+  
+  .category-card {
+    padding: 20px;
+  }
+  
+  .category-icon {
+    font-size: 2.5rem;
+  }
+  
+  .category-name {
+    font-size: 1.3rem;
+  }
+}
+
+/* Ensure map is clickable */
+.leaflet-interactive {
+  cursor: crosshair !important;
+}
+
+/* Fix for touch devices */
+.leaflet-touch .leaflet-control-zoom a {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
 }
